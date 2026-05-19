@@ -22,7 +22,7 @@ The integration works locally, but connection to Tuya BLE device requires device
 
 ## The only supported device for now:
 
-<img src="devices/SBLM04.png" alt="SBLM04 Motion Sensor" width="100px"/>
+<img src="https://github.com/mausibris/ha_tuya_ble/blob/main/devices/SBLM04.png?raw=true" alt="SBLM04 Motion Sensor" width="100px"/>
 
 * Motion Brightness Sensor (category_id 'ldcg')
   + SBLM04 (product_id 'lel5afa4'), powered by CR2 battery or USB type C.
