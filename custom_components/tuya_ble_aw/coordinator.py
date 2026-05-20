@@ -7,9 +7,9 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN, CONF_MAC, CONF_UUID_KEY, CONF_LOCAL_KEY
+from .const import DOMAIN, CONF_MAC, CONF_DEV_TYPE_KEY, CONF_UUID_KEY, CONF_LOCAL_KEY
 from .tuya_ble import TuyaBLEDevice
-from .ble_device_factory import TuyaBLEDeviceFactory
+from .ble_device_factory import tuyaBLEDeviceFactory
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,6 +26,7 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
         self.hass = hass
         self.entry = entry
         self.mac_adr = mac_adr
+        self.dev_type = entry.data.get(CONF_DEV_TYPE_KEY)
         self.uuid = entry.data.get(CONF_UUID_KEY)
         self.local_key = entry.data.get(CONF_LOCAL_KEY)
         self.device: TuyaBLEDevice | None = None
@@ -43,7 +44,7 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
 
     async def setupBluetooth(self):
 
-        self.device = await TuyaBLEDeviceFactory.get(self.hass, self.mac_adr, self.uuid, self.local_key)
+        self.device = await tuyaBLEDeviceFactory.addDevice(self.hass, self.mac_adr, self.dev_type, self.uuid, self.local_key)
         #self.product_info = get_device_product_info(self.device) #need a catalog
 
         self.entry.async_on_unload(
@@ -67,7 +68,7 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
         except Exception:
             _LOGGER.exception("Failed stopping BLE device")
         finally:
-            TuyaBLEDeviceFactory.forget_device(self.mac_adr)
+            tuyaBLEDeviceFactory.forget_device(self.mac_adr)
 
     @callback
     def _handle_device_update(self, updates: list[TuyaBLEDataPoint]) -> None:
