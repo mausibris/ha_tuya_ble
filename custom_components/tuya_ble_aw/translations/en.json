@@ -8,7 +8,7 @@
                 "description": "Bitte gib die mac-Adresse und den Local Key aus dem Tuya Portal ein.",
                 "data": {
                     "mac": "MAC-Adresse",
-                    "dev_type_key": "Gerätetyp",
+                    "device_type_key": "Gerätetyp",
                     "uuid_key": "UUID (16 Zeichen)",
                     "local_key": "Lokaler Schlüssel (16 Zeichen)",
                     "local_key_en": "device local key"

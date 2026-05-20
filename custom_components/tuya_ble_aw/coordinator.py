@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 from datetime import datetime, timedelta
 from homeassistant.util import dt as dt_util
 from homeassistant.components import bluetooth
@@ -6,9 +7,10 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import DOMAIN, CONF_MAC, CONF_DEV_TYPE_KEY, CONF_UUID_KEY, CONF_LOCAL_KEY
-from .tuya_ble import TuyaBLEDevice
+from .const import DOMAIN, CONF_MAC, CONF_DEVICE_TYPE_KEY, CONF_UUID_KEY, CONF_LOCAL_KEY, SIGNAL_NEW_DP
+from .tuya_ble import TuyaBLEDevice, TuyaBLEDataPoint
 from .ble_device_factory import tuyaBLEDeviceFactory
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,14 +23,16 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN}_{mac_adr}",
-        )
+            name=f"{DOMAIN}_{mac_adr}",)
+        
         self.hass = hass
         self.entry = entry
         self.mac_adr = mac_adr
-        self.dev_type = entry.data.get(CONF_DEV_TYPE_KEY)
+        self.device_type = entry.data.get(CONF_DEVICE_TYPE_KEY, "generic")
         self.uuid = entry.data.get(CONF_UUID_KEY)
         self.local_key = entry.data.get(CONF_LOCAL_KEY)
+        self.dp_values: dict[int, Any] = {}
+        self.discovered_dps: set[int] = set()
         self.device: TuyaBLEDevice | None = None
 
         # Aktuelle Zustände
@@ -36,7 +40,6 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
         self.motion_detected: bool|None = None
         self.battery_level: int|None = None
         self.illuminance: int|None = None
-        self.unexpected_val: int|None = None
         #self.value101: int|None = None
         #self.product_info: TuyaBLEProductInfo
 
@@ -44,7 +47,7 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
 
     async def setupBluetooth(self):
 
-        self.device = await tuyaBLEDeviceFactory.addDevice(self.hass, self.mac_adr, self.dev_type, self.uuid, self.local_key)
+        self.device = await tuyaBLEDeviceFactory.addDevice(self.hass, self.mac_adr, self.device_type, self.uuid, self.local_key)
         #self.product_info = get_device_product_info(self.device) #need a catalog
 
         self.entry.async_on_unload(
@@ -77,22 +80,14 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
         #datapoints = self.device.datapoints._datapoints
         #for dp_id, dp in datapoints.items():
         for dp in updates:
-            #_LOGGER.warning("DP %s DIR %s -> %s", dp.id, dir(dp), dp.value)
-            #_LOGGER.warning("DP REPR %s", dp)
-            #_LOGGER.warning("DP %s VALUE %s TYPE %s", dp.id, getattr(dp, "value", None), type(getattr(dp, "value", None)))
-
-            if dp.id == 101 : #and dp.changed_by_device
-                self.motion_detected = not bool(dp.value)
-                valueAsInt = int(dp.value)
-                if valueAsInt!=0 and valueAsInt!=1:
-                    _LOGGER.warning("DP %s -> %s TYPE %s", dp.id, dp.value, type(getattr(dp, "value", None)))
-            elif dp.id == 4:
-                self.battery_level = int(dp.value)
-            elif dp.id == 2:
-                self.illuminance = int(dp.value)
-            else:
-                self.unexpected_val = dp.id
-                _LOGGER.warning("DP %s -> %s TYPE %s dev %s", dp.id, dp.value, type(getattr(dp, "value", None)), dp.changed_by_device)
+            if dp.id not in self.discovered_dps:
+                self.discovered_dps.add(dp.id)
+                _LOGGER.info(f"Discovered new datapoint {dp.id} ({type(dp.value)}) on {self.mac_adr}")
+                async_dispatcher_send(
+                    self.hass,
+                    f"{DOMAIN}_{SIGNAL_NEW_DP}_{self.mac_adr}",
+                    dp.id)
+            self.dp_values[dp.id] = dp.value
 
         self.last_seen = dt_util.utcnow()
         self.async_update_listeners()

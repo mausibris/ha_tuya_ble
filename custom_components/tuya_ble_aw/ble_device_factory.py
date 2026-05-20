@@ -17,13 +17,13 @@ class TuyaBLEDeviceFactory(AbstaractTuyaBLEDeviceManager):
         self._credentials = {}
 
     
-    async def addDevice(self, hass, mac_adr, dev_type, uuid, local_key) -> TuyaBLEDevice:
+    async def addDevice(self, hass, mac_adr, device_type, uuid, local_key) -> TuyaBLEDevice:
         if mac_adr in self._instances:
             return self._instances[mac_adr]
 
         device = None
         try:
-            if dev_type == "ldcg/lel5afa4":
+            if device_type == "ldcg/lel5afa4":
                 self._credentials[mac_adr] = TuyaBLEDeviceCredentials(
                     uuid, # uuid. Unbeding nötig!
                     local_key, # local_key
@@ -38,11 +38,11 @@ class TuyaBLEDeviceFactory(AbstaractTuyaBLEDeviceManager):
                     uuid, # uuid. Unbeding nötig!
                     local_key, # local_key
                     "<still unknown>", # device_id, in cloud id, in app: virtual-id.
-                    "<cat unknown>", # category
+                    "<category unknown>", # category
                     "<pr_id unknown>", # product_id
                     "Generic Sensor", # device_name, in cloud name
-                    "<model unknown>", # product_model, in cloud model
-                    "<still unknown>") # product_name.
+                    "<product_model unknown>", # product_model, in cloud model
+                    "<product_name unknown>") # product_name.
 
             ble_device = bluetooth.async_ble_device_from_address(
                 hass, mac_adr.upper(), True) or await get_device(mac_adr)

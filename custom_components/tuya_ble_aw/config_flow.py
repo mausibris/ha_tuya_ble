@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.components import bluetooth
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, SelectSelectorMode
 
-from .const import DOMAIN, CONF_MAC, CONF_DEV_TYPE_KEY, CONF_UUID_KEY, CONF_LOCAL_KEY
+from .const import DOMAIN, CONF_MAC, CONF_DEVICE_TYPE_KEY, CONF_UUID_KEY, CONF_LOCAL_KEY
 #from .ble_device_factory import tuyaBLEDeviceFactory
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
     if len(mac_adr) != 17 or mac_adr.count(":") != 5:
         raise InvalidMacAdr
 
-    #dev_type, uuid?
+    #device_type, uuid?
 
     local_key = data[CONF_LOCAL_KEY]
     if len(local_key) < 5:
@@ -94,7 +94,7 @@ class TuyaPIRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # https://developers.home-assistant.io/docs/config_entries_config_flow_handler/#translations
         data_schema = vol.Schema({
             vol.Required(CONF_MAC, default=suggested_mac_adr): str,
-            vol.Required(CONF_DEV_TYPE_KEY, default="generic",): SelectSelector(devTypeSelectConfig),
+            vol.Required(CONF_DEVICE_TYPE_KEY, default="generic",): SelectSelector(devTypeSelectConfig),
             vol.Required(CONF_UUID_KEY): str,
             vol.Required(CONF_LOCAL_KEY): str
         })
