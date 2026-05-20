@@ -4,11 +4,7 @@ from typing import Any
 from homeassistant import config_entries, exceptions
 from homeassistant.core import HomeAssistant
 from homeassistant.components import bluetooth
-from homeassistant.helpers.selector import (
-    SelectSelector,
-    SelectSelectorConfig,
-    SelectSelectorMode,
-)
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, SelectSelectorMode
 
 from .const import DOMAIN, CONF_MAC, CONF_DEV_TYPE_KEY, CONF_UUID_KEY, CONF_LOCAL_KEY
 #from .ble_device_factory import tuyaBLEDeviceFactory

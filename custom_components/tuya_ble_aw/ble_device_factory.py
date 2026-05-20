@@ -1,9 +1,12 @@
+import logging
 import asyncio
 from bleak_retry_connector import get_device
 from homeassistant.components import bluetooth
 from homeassistant.exceptions import ConfigEntryNotReady
 
 from .tuya_ble import TuyaBLEDevice, TuyaBLEDeviceCredentials, AbstaractTuyaBLEDeviceManager
+
+_LOGGER = logging.getLogger(__name__)
 
 class TuyaBLEDeviceFactory(AbstaractTuyaBLEDeviceManager):
     

@@ -2,13 +2,13 @@ from __future__ import annotations
 import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-#from homeassistant.const import Platform
+from homeassistant.const import Platform
 from .const import DOMAIN
 from .coordinator import TuyaBLEDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["binary_sensor", "sensor"]
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
