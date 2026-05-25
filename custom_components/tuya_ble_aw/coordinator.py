@@ -115,7 +115,7 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
             # Die Identifiers müssen über die ganze HA-Instanz eindeutig sein.
             # Die MAC-Adresse ist hier perfekt.
             identifiers={(DOMAIN, self.mac_adr)},
-            name="Bewegungsmelder (Tuya BLE)",
+            name=self.device.name,
             manufacturer="Tuya",
             model=self.device.product_model,
             model_id = self.device.product_id,
