@@ -5,6 +5,7 @@ from homeassistant import config_entries, exceptions
 from homeassistant.core import HomeAssistant
 from homeassistant.components import bluetooth
 from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, SelectSelectorMode
+from homeassistant.data_entry_flow import AbortFlow
 
 from .const import DOMAIN, CONF_MAC, CONF_DEVICE_TYPE_KEY, CONF_UUID_KEY, CONF_LOCAL_KEY
 #from .ble_device_factory import tuyaBLEDeviceFactory
@@ -71,6 +72,8 @@ class TuyaPIRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_MAC] = "invalid data"
             except InvalidLocalKey:
                 errors[CONF_LOCAL_KEY] = "invalid data"
+            except AbortFlow as af:
+                errors["base"] = af.reason
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"

@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "already_configured": "TODO: Bereits konfiguriert"
+            "already_configured": "TODO: Bereits konfiguriert",
+            "already_in_progress": "TODO: Konfiguration bereits im Gange"
         },
         "step": {
             "user": {
