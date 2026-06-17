@@ -32,8 +32,12 @@ class TuyaGenericBinarySensor(TuyaBLEBaseEntity, BinarySensorEntity):
         self._attr_name = description.name
         self._attr_device_class = description.device_class
         self._attr_unique_id = f"{self.coordinator.mac_adr}_{self.dp_stable_name}"
+        self._invert = description.invert
 
     @property
     def is_on(self) -> bool | None:
         value = self.coordinator.dp_values.get(self.dp_id)
-        return None if value is None else bool(value)
+        if value is None:
+            return None
+
+        return not value if self._invert else bool(value)

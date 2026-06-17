@@ -16,6 +16,7 @@ class DPDescription:
     state_class: SensorStateClass | None = None
     unit: str | None = None
     entity_category: EntityCategory | None = None
+    invert: bool | None = None
 
 #Das ist nur für SBLM04. Unklar ist, ob andere Geräte die gleichen DP-IDs haben.
 KNOWN_SENSOR_DPS: dict[int, DPDescription] = {
@@ -43,5 +44,6 @@ KNOWN_SENSOR_DPS: dict[int, DPDescription] = {
         name="Bewegung",
         stable_name="motion",
         device_class=BinarySensorDeviceClass.MOTION,
+        invert=True,
     ),
 }
