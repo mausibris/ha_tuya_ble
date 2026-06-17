@@ -97,9 +97,9 @@ class TuyaPIRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         # https://developers.home-assistant.io/docs/config_entries_config_flow_handler/#translations
         data_schema = vol.Schema({
             vol.Required(CONF_MAC, default=suggested_mac_adr): str,
-            vol.Required(CONF_DEVICE_TYPE_KEY, default="generic",): SelectSelector(devTypeSelectConfig),
-            vol.Required(CONF_UUID_KEY): str,
-            vol.Required(CONF_LOCAL_KEY): str
+            vol.Required(CONF_DEVICE_TYPE_KEY, default="ldcg/lel5afa4",): SelectSelector(devTypeSelectConfig),
+            vol.Required(CONF_LOCAL_KEY): str,
+            vol.Optional(CONF_UUID_KEY): str,
         })
 
         # If there is no user input or there were errors, show the form again, including any errors that were found with the input.

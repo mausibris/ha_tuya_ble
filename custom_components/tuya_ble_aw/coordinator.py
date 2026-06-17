@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from typing import Any
 from datetime import datetime, timedelta
 from homeassistant.util import dt as dt_util
@@ -50,9 +51,6 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
         self.device = await tuyaBLEDeviceFactory.addDevice(self.hass, self.mac_adr, self.device_type, self.uuid, self.local_key)
         #self.product_info = get_device_product_info(self.device) #need a catalog
 
-        self.entry.async_on_unload(
-            self.device.register_callback(self._handle_device_update))
-
         # Hier registrieren wir den Callback für Bluetooth-Pakete
         # HA filtert automatisch Pakete für diese MAC-Adresse
         self.entry.async_on_unload(
@@ -62,6 +60,26 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
                 bluetooth.match.BluetoothCallbackMatcher({bluetooth.match.ADDRESS: self.mac_adr}),
                 bluetooth.BluetoothScanningMode.ACTIVE, # "active" scan für Tuya nötig
             )
+        )
+
+        for _ in range(50): # wait up to 5 seconds for the UUID to become available. Without the UUID device informations cannot be read.
+            if not self.device.uuid:
+                await asyncio.sleep(0.1)
+
+        if not self.device.uuid:
+           raise Exception("UUID not received!")
+
+        if not self.uuid and self.device.uuid:
+            new_data = dict(self.entry.data)
+            new_data[CONF_UUID_KEY] = self.device.uuid
+            self.hass.config_entries.async_update_entry(self.entry, data=new_data)
+
+        self.entry.async_on_unload(
+            self.device.register_callback(self._handle_device_update))
+
+        await asyncio.wait_for(
+            self.device.update(),
+            timeout=20,
         )
 
     async def stopBluetooth(self):
@@ -104,6 +122,9 @@ class TuyaBLEDataCoordinator(DataUpdateCoordinator):
         self.last_seen = dt_util.utcnow()
         self.device.set_ble_device_and_advertisement_data(
             service_info.device, service_info.advertisement)
+
+        if not self.device.uuid:
+            self.hass.add_job(self.device.initialize())
         self.async_update_listeners()
 
     def device_info(self) -> DeviceInfo:

@@ -1,5 +1,4 @@
 import logging
-import asyncio
 from bleak_retry_connector import get_device
 from homeassistant.components import bluetooth
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -52,11 +51,6 @@ class TuyaBLEDeviceFactory(AbstaractTuyaBLEDeviceManager):
 
             device = TuyaBLEDevice(self, ble_device)
             await device.initialize()
-
-            await asyncio.wait_for(
-                device.update(),
-                timeout=20,
-            )
 
             self._instances[mac_adr] = device
             return device
