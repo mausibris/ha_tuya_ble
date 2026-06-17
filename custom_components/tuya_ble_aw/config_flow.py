@@ -4,11 +4,18 @@ from typing import Any
 from homeassistant import config_entries, exceptions
 from homeassistant.core import HomeAssistant
 from homeassistant.components import bluetooth
+from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig, SelectSelectorMode
+from homeassistant.data_entry_flow import AbortFlow
 
-from .const import DOMAIN, CONF_MAC, CONF_UUID_KEY, CONF_LOCAL_KEY
-from .ble_device_factory import TuyaBLEDeviceFactory
+from .const import DOMAIN, CONF_MAC, CONF_DEVICE_TYPE_KEY, CONF_UUID_KEY, CONF_LOCAL_KEY
+#from .ble_device_factory import tuyaBLEDeviceFactory
 
 _LOGGER = logging.getLogger(__name__)
+
+DEVICE_TYPES = {
+    "ldcg/lel5afa4": "Motion & Brightness Sensor (SBLM04)",
+    "generic": "Generic / unsupported device",
+}
 
 async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
 
@@ -16,7 +23,7 @@ async def validate_input(hass: HomeAssistant, data: dict) -> dict[str, Any]:
     if len(mac_adr) != 17 or mac_adr.count(":") != 5:
         raise InvalidMacAdr
 
-    #uuid?
+    #device_type, uuid?
 
     local_key = data[CONF_LOCAL_KEY]
     if len(local_key) < 5:
@@ -65,20 +72,34 @@ class TuyaPIRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 errors[CONF_MAC] = "invalid data"
             except InvalidLocalKey:
                 errors[CONF_LOCAL_KEY] = "invalid data"
+            except AbortFlow as af:
+                errors["base"] = af.reason
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
         # Falls Daten aus der Bluetooth-Entdeckung vorliegen, diese als Standardwert setzen
         suggested_mac_adr = self._discovery_info.get(CONF_MAC, "")
+
+        devTypeSelectConfig = SelectSelectorConfig(
+            mode=SelectSelectorMode.DROPDOWN,
+            options=[{
+                    "value": key,
+                    "label": label,
+                }
+                for key, label in DEVICE_TYPES.items()
+            ],
+        )
+
         # This is the schema that used to display the UI to the user.
         # Note the input displayed to the user will be translated. See the
         # translations/<lang>.json file and strings.json. See here for further information:
         # https://developers.home-assistant.io/docs/config_entries_config_flow_handler/#translations
         data_schema = vol.Schema({
             vol.Required(CONF_MAC, default=suggested_mac_adr): str,
-            vol.Required(CONF_UUID_KEY): str,
-            vol.Required(CONF_LOCAL_KEY): str
+            vol.Required(CONF_DEVICE_TYPE_KEY, default="ldcg/lel5afa4",): SelectSelector(devTypeSelectConfig),
+            vol.Required(CONF_LOCAL_KEY): str,
+            vol.Optional(CONF_UUID_KEY): str,
         })
 
         # If there is no user input or there were errors, show the form again, including any errors that were found with the input.

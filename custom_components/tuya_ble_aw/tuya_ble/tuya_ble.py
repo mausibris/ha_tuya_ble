@@ -334,6 +334,13 @@ class TuyaBLEDevice:
                         raw_uuid = cipher.decrypt(raw_uuid)
                         self._uuid = raw_uuid.decode("utf-8")
 
+                        if self._device_info and self._device_info.uuid != self._uuid:
+                            if self._device_info.uuid:
+                                _LOGGER.warning(f"UUID from advertisement data ({self._uuid}) does not match device info ({self._device_info.uuid})")
+                            else:
+                                _LOGGER.debug( f"discovered UUID: {self._uuid}")
+                            self._device_info.uuid = self._uuid
+
     @property
     def address(self) -> str:
         """Return the address."""

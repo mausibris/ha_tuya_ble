@@ -13,8 +13,6 @@ class TuyaBLEBaseEntity(CoordinatorEntity):
         coordinator = entry.runtime_data
         super().__init__(coordinator)
 
-        #TODO f"{mac_adr}_motion", f"{mac_adr}_battery" nutzen
-        self._attr_unique_id = f"{self.coordinator.mac_adr}_{self.__class__.__name__}"
 
     # To link this entity to the device, this property must return an
     # identifiers value matching that used in the ??, but no other information such
